@@ -1,4 +1,4 @@
-# solar-radiation
+# Solar radiation in ecology
 A project to evaluate methods for incorporating solar radition into ecological analyses.
 
 The analysis currently has three focal study areas: North Cascades National Park ("n"), Siskiyou Mountains ("c"), and Sequoia National Park ("s"). Input files (e.g., DEMs) and output files (e.g., solar radiation rasters) are created separately for each of the three study regions.
@@ -8,7 +8,7 @@ To preform analyses to address the study questions (e.g, to compare solar raditi
 ## Repository file structure:
 
 * **data** (directory)
-  * **non-synced** (directory): datasets (both input and output) that are too large to sync via github. These files are stored on Box at: https://ucdavis.box.com/v/solar-rad-non-synced. After you clone the GitHub repo, simply copy the whole folder "non-synced" from box into the "data" directory on your local computer and you will have all the files in the correct structure for use by the scripts.
+  * **non-synced** (directory): datasets (both input and output) that are too large to sync via GitHub. These files are stored on Box at: https://ucdavis.box.com/v/solar-rad-non-synced. After you clone the GitHub repo, simply copy the whole folder "non-synced" from Box into the "data" directory on your local copy of the repository (on your computer) and you will have all the files in the correct structure for use by the scripts.
   
   * **output** (directory): analysis outputs that are small enough to be synced on GitHub. Currently only contains rasters of total annual solar radiation (computed with and without topographic shading) for the focal study areas.
   
