@@ -3,7 +3,7 @@ _A project to evaluate methods for representing solar radition as an explanatory
 
 The analysis currently has three focal study areas: North Cascades National Park ("n"), Siskiyou Mountains ("c"), and Sequoia National Park ("s"). Input files (e.g., DEMs) and output files (e.g., solar radiation rasters) are supplied/created separately for each of the three study regions.
 
-To preform analyses to address the study questions (e.g, to compare solar radition computed with and without topographic shading), it is not necessary to run the scripts in the "data-carpentry" folder (see below), as these scripts have already been run and their output (rasters of solar radition) saved in the "data" folder of the repository. It is possible (and much simpler) to use only the scripts in the "data-analysis" directory, as they use the data files (e.g., solar radiation rasters) that have already been computed and saved into the repo (in the "data" directory).
+To perform analyses to address the study questions (e.g, to compare solar radition computed with and without topographic shading), it is not necessary to run the scripts in the "data-carpentry" folder (see below), as these scripts have already been run and their output (rasters of solar radition) saved in the "data" folder of the repository. It is possible (and much simpler) to use only the scripts in the "data-analysis" directory, as they use the data files (e.g., solar radiation rasters) that have already been computed and saved into the repo (in the "data" directory).
 
 ## Repository file structure:
 
