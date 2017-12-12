@@ -31,3 +31,9 @@ vignettes/*.pdf
 # Temporary files created by R markdown
 *.utf8.md
 *.knit.md
+
+# QGIS display files
+*.aux.xml
+
+# Files that are too large to sync (e.g. DEMs and daily solar radiation rasters)
+data/non-synced/
