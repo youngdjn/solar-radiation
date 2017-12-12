@@ -42,4 +42,4 @@ shading.values <- values(rad.shading.n)
 
 plot(noshading.values,shading.values)
 
-cor(noshading.values,shading.values,use="complete.obs") # correlation of 0.932
+cor(noshading.values,shading.values,use="complete.obs")^2 # r-sq of 0.87
