@@ -16,4 +16,4 @@ To preform analyses to address the study questions (e.g, to compare solar raditi
 
   * **data-carpentry** (directory): Scripts to take existing datasets (i.e., so far only DEMs) and compute data layers necessary for the analyses of interest (i.e., so far only solar radiation rasters).
   
-  * **data-analysis** (directory): Scripts to analyze the processed data to draw inferences and address the study questions
+  * **data-analysis** (directory): Scripts to analyze the processed data (i.e., so far only solar radiation rasters) to draw inferences and address the study questions
