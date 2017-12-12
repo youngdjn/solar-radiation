@@ -1,5 +1,5 @@
 # Solar radiation in ecology
-A project to evaluate methods for incorporating solar radition into ecological analyses.
+_A project to evaluate methods for representing solar radition as an explanatory variable in ecological analyses_
 
 The analysis currently has three focal study areas: North Cascades National Park ("n"), Siskiyou Mountains ("c"), and Sequoia National Park ("s"). Input files (e.g., DEMs) and output files (e.g., solar radiation rasters) are created separately for each of the three study regions.
 
