@@ -5,6 +5,7 @@ library(rgrass7)
 library(sf)
 library(raster)
 library(tidyverse)
+library(spatialEco)
 
 #### Constants and convenience functions ####
 
@@ -23,13 +24,21 @@ bbox_fun <- function(x,y,width,height) { # give it the center and its width and 
   bbox <- st_polygon(list(cbind(c(x1,x2,x2,x1,x1),c(y1,y1,y2,y2,y1))))
 }
 
+rad2deg <- function(rad) {
+  return(rad*180/3.14)
+}
+deg2rad <- function(deg) {
+  return((deg/180)*3.14)
+}
 
-### Load DEMs ### (these extend way beyond the project boundaries so that they can be trimmed down later)
+
+#### Load DEMs ####
+#(these extend way beyond the project boundaries so that they can be trimmed down later)
 dem.n <- raster("data/non-synced/dem/dem_n.tif") # north cascades
 dem.c <- raster("data/non-synced/dem/dem_c.tif") # siskoyous
 dem.s <- raster("data/non-synced/dem/dem_s.tif") # sequoia np
 
-### Define project area ###
+#### Define project area ####
 bbox1 <- bbox_fun(-121.4,48.8,0.1,0.1) # north cascades # was 0.2
 bbox2 <- bbox_fun(-123.3,42.1,0.1,0.1) # siskiyous
 bbox3 <- bbox_fun(-118.7,36.7,0.1,0.1) # sequoia
@@ -49,6 +58,73 @@ dem.crop.s <- crop(dem.s,bboxes_sp[3])
 
 # save them in a list in order to loop through them
 dems <- list(dem.crop.n,dem.crop.c,dem.crop.s)
+
+
+
+#### Compute DEM-derived values (other than GRASS radiation) ####
+#! currently only  for northern study region
+
+## TPI
+tpi.n = tpi(dem.crop.n,scale=51,win="rectangle",normalize=TRUE)
+
+## aspect
+aspect.n = terrain(dem.crop.n,opt="aspect",unit="radians")
+northness.n = cos(aspect.n)
+names(aspect.n) = "aspect"
+
+## slope
+slope.n = terrain(dem.crop.n,opt="slope",unit="radians")
+names(slope.n) = "slope"
+
+## latitude
+lat.n = init(dem.crop.n,"y")
+
+## longitude
+long.n = init(dem.crop.n,"x")
+
+## lat & long
+coords.n = brick(lat.n,long.n)
+coords.points.n = rasterToPoints(coords.n) %>% as.data.frame()
+
+## convert to sf points so can reproject to lat/long
+coords.sf = st_as_sf(coords.points.n,coords=c("x","y"),crs=utm10n)
+coords.sf = st_transform(coords.sf,crs=wgs84)
+lat.geo.n = st_coordinates(coords.sf)[,"Y"]
+
+values(lat.n) = lat.geo.n
+names(lat.n)= "latitude"
+
+
+## Compute McCune radiation (not heat load) ##
+mccune.rad = function(lat,slope,aspect) {
+  ln.rad = -1.467 + 1.582*cos(lat)*cos(slope) + -1.500*cos(aspect)*sin(slope)*sin(lat) + -0.262*sin(lat)*sin(slope) + 0.607*sin(aspect)*sin(slope)
+  return((ln.rad))
+}
+
+mccune.rad(deg2rad(40),deg2rad(30),deg2rad(180)) # in MJ cm^-2 yr^-1 ## testing using McCune's given test case; ##!! NOTE the ouput doesn't perfectly match what McCune says it should! There must be an error in the coefs that McCune reports
+
+mccune.input.rast = brick(aspect.n,slope.n,lat.n)
+mccune.input.data = rasterToPoints(mccune.input.rast) %>% as.data.frame()
+
+mccune.rad.values = mccune.rad(lat = deg2rad(mccune.input.data$latitude),
+                               slope = mccune.input.data$slope,
+                               aspect = mccune.input.data$aspect)
+
+mccune.rad.raster.n = mccune.input.rast[[1]]
+
+values(mccune.rad.raster.n) = mccune.rad.values
+
+
+## write them all
+writeRaster(tpi.n,"data/output/other_indices_rasters/tpi_n.tif",overwrite=TRUE)
+writeRaster(aspect.n,"data/output/other_indices_rasters/aspect_n.tif",overwrite=TRUE)
+writeRaster(northness.n,"data/output/other_indices_rasters/northness_n.tif",overwrite=TRUE)
+writeRaster(dem.crop.n,"data/output/other_indices_rasters/dem_n.tif",overwrite=TRUE)
+writeRaster(mccune.rad.raster.n,"data/output/annual_radiation_rasters/annual_mccune_n.tif",overwrite=TRUE)
+
+
+#### Compute GRASS solar radiation ####
+
 
 rad.brick.shading <- list()
 rad.sum.shading <- list()
@@ -89,10 +165,10 @@ for (i in 1:length(dems)) {
   # calculate horizon (speeds up r.sun later because we calculate horizon only once then we can use the result to compute radiation for each day, rather than computing horizon separately for each day)
   execGRASS("r.horizon",parameters=list(elevation="demfocal", step=30, bufferzone=200, output="horizonangle", maxdistance=5000))
 
-  # for each day of the year
+  # for every 5th day of the year
   daily.rad.shading <- list()
   daily.rad.noshading <- list()
-  for(j in 1:73) { # for every third day: 121
+  for(j in 1:73) { # if for every third day: 121
     
     day <- j*5-4 # do it for every fifth day # previously when doing for every third day:  j*3-2
     day.name <- paste0("day",day)
@@ -112,10 +188,10 @@ for (i in 1:length(dems)) {
   }
   
   rad.brick.shading[[i]] <- brick(daily.rad.shading)
-  rad.sum.shading[[i]] <- sum(rad.brick.shading[[i]])*5     # previously when doing for every third day: *3 + 2*rad.brick.shading[[i]][[nlayers(rad.brick.shading[[i]])]] # add the last day on twice more because otherwise we would have summed radiation for days 1-363
+  rad.sum.shading[[i]] <- sum(rad.brick.shading[[i]])*5 * 6.7e-7 # convert to MJ cm^2 yr^-1     # previously when doing for every third day: *3 + 2*rad.brick.shading[[i]][[nlayers(rad.brick.shading[[i]])]] # add the last day on twice more because otherwise we would have summed radiation for days 1-363
     
   rad.brick.noshading[[i]] <- brick(daily.rad.noshading)
-  rad.sum.noshading[[i]] <- sum(rad.brick.noshading[[i]])*5 # previously when doing for every third day: *3 + 2*rad.brick.noshading[[i]][[nlayers(rad.brick.noshading[[i]])]]
+  rad.sum.noshading[[i]] <- sum(rad.brick.noshading[[i]])*5 * 6.7e-7 # convert to MJ cm^2 yr^-1 # previously when doing for every third day: *3 + 2*rad.brick.noshading[[i]][[nlayers(rad.brick.noshading[[i]])]]
   
   
   
