@@ -1,5 +1,5 @@
-setwd("~/UC Davis/Research Projects/Solar radiation/solar-radiation")
-
+setwd("~/UC Davis/Research Projects/Solar radiation/solar-radiation") #Derek
+setwd("~/Documents/research/solarrad/solar-radiation") #Jesse 
 library(rgrass7)
 library(sf)
 library(raster)
