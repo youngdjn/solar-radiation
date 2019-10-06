@@ -1,4 +1,4 @@
-setwd("~/UC Davis/Research Projects/Solar rad r5mort temp")
+setwd("~/Research Projects/Solar rad postfire-management_temp")
 
 library(rgrass7)
 library(sf)
@@ -8,16 +8,13 @@ wgs84 <- "+proj=longlat +datum=WGS84 +no_defs"
 
 
 
-##!! might want to use albers raster now if this doesn't work right
-raster.file <- "C:/Users/DYoung/Documents/UC Davis/GIS/CA abiotic layers/DEM/CA/new ncal/CAmerged12_albers2.tif"
+raster.file <- "C:/Users/DYoung/Documents/GIS/CA abiotic layers/DEM/CA/new ncal/CAmerged14_albers.tif"
 dem <- raster(raster.file)
 
-
-study.plots <- plots_sp
-study.plots <- st_read("C:/Users/DYoung/Documents/UC Davis/Research Projects/Post-fire management/postfire-management/data/site-selection/output/candidate-plots/candidate_plots_paired.gpkg")
+study.plots <- st_read("C:/Users/DYoung/Documents/Research Projects/Post-fire management/postfire-management/data/field-processed/spatial/plots_points.gpkg")
 
 
-study.area <- st_buffer(study.plots,10000) # could probably reduce this further
+study.area <- st_buffer(study.plots,15000)
 study.area <- st_union(study.area)
 study.area <- as(study.area,"Spatial")
 study.area <- spTransform(study.area,projection(dem))
@@ -52,8 +49,14 @@ execGRASS("g.mapset",parameters=list(mapset=mapset))
 
 execGRASS("r.slope.aspect", flags="overwrite", parameters=list(elevation="tmprast", slope="sloperast", aspect="asprast"))
 
-execGRASS("r.sun", flags="overwrite", parameters=list(elevation="tmprast", linke_value=2, glob_rad="out", day=74, slope="sloperast", aspect="asprast") )
-## march: 74
+
+
+execGRASS("r.sun", flags="overwrite", parameters=list(elevation="tmprast", linke_value=2, glob_rad="rad_winter", day=355, slope="sloperast", aspect="asprast") )
+execGRASS("r.sun", flags="overwrite", parameters=list(elevation="tmprast", linke_value=2, glob_rad="rad_winter_spring", day=35, slope="sloperast", aspect="asprast") )
+execGRASS("r.sun", flags="overwrite", parameters=list(elevation="tmprast", linke_value=2, glob_rad="rad_spring", day=79, slope="sloperast", aspect="asprast") )
+execGRASS("r.sun", flags="overwrite", parameters=list(elevation="tmprast", linke_value=2, glob_rad="rad_spring_summer", day=125, slope="sloperast", aspect="asprast") )
+execGRASS("r.sun", flags="overwrite", parameters=list(elevation="tmprast", linke_value=2, glob_rad="rad_summer", day=171, slope="sloperast", aspect="asprast") )
+
 
 
 
@@ -70,8 +73,24 @@ writeRaster(r2,"asp.tif",overwrite=TRUE)
 
 
 ##!! need to write it and make sure it ignored the masked out areas
-r <- readRAST("out")
+r <- readRAST("rad_winter")
 r2 <- raster(r)
-writeRaster(r2,"march_rad.tif",overwrite=TRUE)
+writeRaster(r2,"rad_winter.tif",overwrite=TRUE)
+
+r <- readRAST("rad_winter_spring")
+r2 <- raster(r)
+writeRaster(r2,"rad_winter_spring.tif",overwrite=TRUE)
+
+r <- readRAST("rad_spring")
+r2 <- raster(r)
+writeRaster(r2,"rad_spring.tif",overwrite=TRUE)
+
+r <- readRAST("rad_spring_summer")
+r2 <- raster(r)
+writeRaster(r2,"rad_spring_summer.tif",overwrite=TRUE)
+
+r <- readRAST("rad_summer")
+r2 <- raster(r)
+writeRaster(r2,"rad_summer.tif",overwrite=TRUE)
 
 
